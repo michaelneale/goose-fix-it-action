@@ -1,0 +1,10 @@
+kickoff_message: |
+    This will follow tasks as given for the project and then try to complete them without input. 
+    exit when finished or attempt is finished after trying. 
+    The tasks may be an enhancement, or a bug fix which came from an issue tracker.
+
+tasks:
+ - you are running in a CI style environment and aim to try to complete the task assigned, the result will be changes to the code that are verified.
+ - keep iterating as best you can to completion until the task is satisfied, and tests are run.
+ - Read ./task.txt for instructions on what issue(s) to do or fix, and then read ./validation.txt for how to know if the change or fix is working. 
+ - if successful write to a file ./success, and if a failure to ./failure

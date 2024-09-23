@@ -1,0 +1,37 @@
+name: Goose example workflow
+
+on:
+  issues:
+    types:
+      - labeled
+jobs:
+  ask-goose:
+    if: github.event.label.name == 'goose'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2' # You can specify the Ruby version you need
+
+      - name: Verify Ruby installation
+        run: ruby -v
+
+      - name: Run Goose Action
+        uses: michaelneale/goose-fix-it-action@v1
+        with:
+          task_request: |
+            ${{ github.event.issue.title }}
+            
+            ${{ github.event.issue.body }}
+            
+            [Link to issue](${{ github.event.issue.html_url }})
+          validation: "please run test.py"
+          create_pr: 'true'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
