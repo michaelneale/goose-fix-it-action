@@ -22,7 +22,7 @@ jobs:
         run: ruby -v
 
       - name: Run Goose Action
-        uses: michaelneale/goose-fix-it-action@v2
+        uses: michaelneale/goose-fix-it-action@v4
         with:
           task_request: |
             ${{ github.event.issue.title }}
