@@ -41,7 +41,7 @@ runs:
       shell: bash
 
     - name: Run goose
-      run: ./entrypoint.sh
+      run: entrypoint.sh
       shell: bash
       env:
         TASK_REQUEST: ${{ inputs.task_request }}
