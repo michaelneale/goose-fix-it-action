@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v2
 
 
-      - name: Set up Ruby
+      - name: Set up Ruby or whatever you need
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.2' # You can specify the Ruby version you need

@@ -1,8 +1,6 @@
-# goose CI
+# goose fix it
 
-
-Run goose as an action in CI to take on tasks in the background for you. 
-
+A github action to run goose to take on tasks in the background for you.
 
 > [!NOTE]
 > Some have suggested this be pronounced "goosey".
@@ -34,8 +32,11 @@ It will do its best to complete the task, as part of your workflow (with the too
 ## Example workflow
 
 To use this in your workflow, it is usually best to trigger off a labelled issue (but doesn't have to).
-In this repo there is [an example workflow](.github/workflows/goose-example-workflow.yml) which is triggered when you open an issue on this repo, and label it as "goose" (if it can solve it, a PR will result linked to that issue).
+In this repo there is [an example workflow](.github/workflows/goose-example-workflow.yml) which is triggered when you open an issue and label it as "goose" (if it can solve it, a PR will result linked to that issue).
+
 The issue serves as input direction for goose. Note the `validation` parameter in the goose action, that is important so it knows how to check its work as it goes (and if it thinks it has ultimately succeeded).
+
+There are many other ways to use it - it could be part of your CI for example.
 
 
 ## Advanced usage and customising. 
