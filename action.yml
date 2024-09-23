@@ -1,14 +1,14 @@
 name: "Goose AI Action"
-description: "Uses goose to help you fix and extend your code as an action in your workflow"
+description: "Uses Goose AI to help you fix and extend your code as an action in your workflow"
 inputs:
   task_request:
     description: 'Task request for Goose AI to complete'
     required: true
   validation:
-    description: 'instructions for how to test to confirm changes are ok'
+    description: 'Instructions for how to test to confirm changes are okay'
     required: true
   create_pr:
-    description: 'Optionally create a Pull Request'
+    description: 'Optionally create a Pull Request (true/false)'
     required: true
 
 runs:
@@ -16,7 +16,7 @@ runs:
   steps:
 
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: '3.12.6'
 
@@ -37,26 +37,78 @@ runs:
       shell: bash
 
     - name: Install additional tools
-      run: sudo apt-get update && sudo apt-get install -y ripgrep curl git jq wget
       shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ripgrep curl git jq wget
 
-    - name: Run goose
-      run: entrypoint.sh
+    - name: Create plan.yaml
+      shell: bash
+      run: |
+        printf "%s\n" \
+          "kickoff_message: |" \
+          "  This will follow tasks as given for the project and then try to complete them without input." \
+          "  Exit when finished or attempt is finished after trying." \
+          "  The tasks may be an enhancement, or a bug fix which came from an issue tracker." \
+          "" \
+          "tasks:" \
+          "  - you are running in a CI-style environment and aim to try to complete the task assigned; the result will be changes to the code that are verified." \
+          "  - keep iterating as best you can to completion until the task is satisfied, and tests are run." \
+          "  - Read ./task.txt for instructions on what issue(s) to do or fix, and then read ./validation.txt for how to know if the change or fix is working." \
+          "  - if successful, write to a file ./success; if a failure, to ./failure" \
+          > plan.yaml
+
+    - name: Create task.txt and validation.txt
+      shell: bash
+      run: |
+        echo "${{ inputs.task_request }}" > task.txt
+        echo "${{ inputs.validation }}" > validation.txt
+
+    - name: Run Goose Session
       shell: bash
       env:
-        TASK_REQUEST: ${{ inputs.task_request }}
-        VALIDATION: ${{ inputs.validation }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      run: |
+        set -e
+
+        echo "Task Request: ${{ inputs.task_request }}" > task.txt
+        echo "Validation: ${{ inputs.validation }}" > validation.txt
+
+        # Start the Goose session in the background
+        cd "$GITHUB_WORKSPACE"
+
+        goose session start --plan plan.yaml &
+        GOOSE_PID=$!
+
+        # Poll for success or failure file
+        while true; do
+          if [ -f ./success ]; then
+            echo "Goose session succeeded"
+            rm -f task.txt validation.txt success failure plan.yaml
+            # Ensure to kill Goose process
+            kill -9 $GOOSE_PID || true
+            exit 0
+          elif [ -f ./failure ]; then
+            echo "Goose session failed"
+            # Ensure to kill Goose process
+            kill -9 $GOOSE_PID || true
+            exit 1
+          fi
+          sleep 10  # Adjust the sleep interval as needed
+        done
+
+        # Ensure to kill Goose process at the end
+        kill -9 $GOOSE_PID || true
 
     - name: Create Pull Request
       if: ${{ inputs.create_pr == 'true' }}
       uses: peter-evans/create-pull-request@v7
       with:
         commit-message: goose changes
-        title: Fixes by goose action
+        title: Fixes by Goose Action
         body: |
-            This is an auto-generated PR with fixes by goose.
-            Task: ${{ inputs.task_request }}
+          This is an auto-generated PR with fixes by Goose.
+          Task: ${{ inputs.task_request }}
         labels: goose, automated pr
         branch: goose-fix/${{ github.run_id }}
         base: main
-        path: ${{ env.GITHUB_WORKSPACE }}
