@@ -40,13 +40,6 @@ runs:
       run: sudo apt-get update && sudo apt-get install -y ripgrep curl git jq wget
       shell: bash
 
-    - name: Copy plan file and entrypoint script
-      run: |
-        cp .github/actions/goose-action/plan.yaml plan.yaml
-        cp .github/actions/goose-action/entrypoint.sh entrypoint.sh
-        chmod +x entrypoint.sh
-      shell: bash
-
     - name: Run goose
       run: ./entrypoint.sh
       shell: bash

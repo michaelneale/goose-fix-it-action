@@ -1,6 +1,6 @@
 # goose fix it
 
-A github action to run goose to take on tasks in the background for you.
+A github action to run [goose-ai](https://github.com/square/goose) to take on tasks in the background for you using AI.
 
 > [!NOTE]
 > Some have suggested this be pronounced "goosey".
@@ -15,9 +15,8 @@ configuration:
 
 ```yaml
 
-
       - name: Run Goose Action
-        uses: michaelneale/goose-fix-it-action@v1
+        uses: michaelneale/goose-fix-it-action@v2
         with:
           task_request: "make me a time machine in C++"
           validation: "run make test to check it passes"
@@ -44,6 +43,8 @@ There are many other ways to use it - it could be part of your CI for example.
 Note due to github limitations, PRs opened by the default GITHUB_TOKEN won't trigger workflows (but you can use a personal access token if you do want it to do that, or have it trigger downstream workflows). 
 
 If you want to customise how it opens a PR, you can set `create_pr: false`, and then use https://github.com/peter-evans/create-pull-request in your own workflow. This will let you set the token to trigger workflows and more.
+
+Check out https://github.com/square/goose for more ways to configure (it can also work with Anthropic etc)
 
 
 > [!WARNING]  
