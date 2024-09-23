@@ -66,8 +66,6 @@ runs:
 
     - name: Run Goose Session
       shell: bash
-      env:
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       run: |
         set -e
 
