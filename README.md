@@ -7,10 +7,12 @@ A github action to run [goose-ai](https://github.com/square/goose) to take on ta
 
 ## Usage
 
-Open a a descritive issue (or find an existing one) and label it with "goose". 
+In this case we have a workflow that is setup to respond to issues labelled as `goose`: 
+
+Open a github issue (or find an existing one) and label it:
 ![Screenshot 2024-09-23 at 6 27 57 PM](https://github.com/user-attachments/assets/b41d39d3-c6da-4f64-8673-96af75348036)
 
-Goose will then attempt to fix and if things go well, you will get a PR later with the fix: 
+goose will then attempt to fix and if things go well, you will get a PR later with the fix: 
 ![Screenshot 2024-09-23 at 6 28 08 PM](https://github.com/user-attachments/assets/e7204eed-e379-4507-8cf4-77362a1ad243)
 
 configuration: 
