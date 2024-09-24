@@ -20,7 +20,7 @@ configuration:
 ```yaml
 
       - name: Run Goose Action
-        uses: michaelneale/goose-fix-it-action@v5
+        uses: michaelneale/goose-fix-it-action@v7
         with:
           task_request: "make me a time machine in C++"
           validation: "run make test to check it passes"
