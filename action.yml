@@ -78,8 +78,8 @@ runs:
         goose session start --plan plan.yaml &
         GOOSE_PID=$!
 
-        # Poll for success or failure file and check if GOOSE_PID is running
-        while ps -p $GOOSE_PID > /dev/null 2>&1; do
+        # Poll for success or failure file
+        while true; do
           if [ -f ./success ]; then
             echo "Goose session succeeded"
             rm -f task.txt validation.txt success failure plan.yaml
@@ -92,14 +92,12 @@ runs:
             kill -9 $GOOSE_PID || true
             exit 1
           fi
+          if ! ps -p $GOOSE_PID > /dev/null 2>&1; then
+            echo "Goose process is no longer running"
+            exit 1
+          fi
           sleep 10  # Adjust the sleep interval as needed
         done
-
-        # If loop exits and Goose process is no longer running
-        if ! ps -p $GOOSE_PID > /dev/null 2>&1; then
-          echo "Goose process is no longer running"
-          exit 1
-        fi
 
         # Ensure to kill Goose process at the end
         kill -9 $GOOSE_PID || true
