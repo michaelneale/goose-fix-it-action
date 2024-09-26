@@ -111,11 +111,8 @@ runs:
         # Generate a slug from the issue title, replacing spaces with dashes and ensuring lowercase
         SLUG=$(echo "${{ github.event.issue.title }}" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd '[:alnum:]-')
         
-        # Fallback to timestamp if the slug is empty or invalid
-        [ -z "$SLUG" ] && SLUG=$(date +%s)
-
         # Construct the full branch name
-        BRANCH_NAME="goose-ai/$SLUG"
+        BRANCH_NAME="goose-ai/$SLUG-$(date +%s)"
 
         # Check out a new branch using the dynamically generated name
         git checkout -b $BRANCH_NAME
