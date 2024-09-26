@@ -129,4 +129,4 @@ runs:
         git push origin $BRANCH_NAME
 
         # Create a pull request using the GitHub CLI
-        gh pr create --head $BRANCH_NAME --title "${{ github.event.issue.title }}" --body "${{ github.event.issue.body }}"        
+        gh pr create --head $BRANCH_NAME --title "${{ github.event.issue.title }}" --body "Resolves issue: ${{ github.event.issue.html_url }} ${{ github.event.issue.body }} "        
