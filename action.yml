@@ -102,15 +102,34 @@ runs:
         # Ensure to kill Goose process at the end
         kill -9 $GOOSE_PID || true
 
-    - name: Create Pull Request
+    - name: Generate branch, commit, push, and create pull request
       if: ${{ inputs.create_pr == 'true' }}
-      uses: peter-evans/create-pull-request@v7
-      with:
-        commit-message: goose changes
-        title: Fixes by Goose Action
-        body: |
-          This is an auto-generated PR with fixes by Goose.
-          Task: ${{ inputs.task_request }}
-        labels: goose, automated pr
-        branch: goose-fix/${{ github.run_id }}
-        base: main
+      shell: bash
+      env:
+          GH_TOKEN: ${{ github.token }}      
+      run: |
+        # Generate a slug from the issue title, replacing spaces with dashes and ensuring lowercase
+        SLUG=$(echo "${{ github.event.issue.title }}" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd '[:alnum:]-')
+        
+        # Fallback to timestamp if the slug is empty or invalid
+        [ -z "$SLUG" ] && SLUG=$(date +%s)
+
+        # Construct the full branch name
+        BRANCH_NAME="goose-ai/$SLUG"
+
+        # Check out a new branch using the dynamically generated name
+        git checkout -b $BRANCH_NAME
+
+        # Configure git user
+        git config --global user.email "goose-ai@block.xyz"
+        git config --global user.name "goose"
+
+        # Add and commit changes
+        git add .
+        git commit -m "changes from goose"
+
+        # Push the branch to the remote repository
+        git push origin $BRANCH_NAME
+
+        # Create a pull request using the GitHub CLI
+        gh pr create --head $BRANCH_NAME --title "${{ github.event.issue.title }}" --body "${{ github.event.issue.body }}"        
