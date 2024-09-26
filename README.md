@@ -7,15 +7,13 @@ A github action to run [goose-ai](https://github.com/square/goose) to take on ta
 
 ## Usage
 
-In this case we have a workflow that is setup to respond to issues labelled as `goose`: 
-
 Open a github issue (or find an existing one) and label it:
 ![Screenshot 2024-09-23 at 6 27 57 PM](https://github.com/user-attachments/assets/b41d39d3-c6da-4f64-8673-96af75348036)
 
 goose will then attempt to fix and if things go well, you will get a PR later with the fix: 
 ![Screenshot 2024-09-23 at 6 28 08 PM](https://github.com/user-attachments/assets/e7204eed-e379-4507-8cf4-77362a1ad243)
 
-configuration: 
+This works by having configuration like this in a workflow in your project:
 
 ```yaml
 
@@ -30,7 +28,7 @@ configuration:
 
 ```
 
-It will do its best to complete the task, as part of your workflow (with the tools it has). If it succeeds in this case a PR will be opened based on the changes it made. If not, no PR results (and that job fails)
+It will do its best to complete the task, as part of your workflow (with the tools it has). If it succeeds in this case a PR will be opened based on the changes it made. If not, no PR results (and that job fails). Ensure that github actions in your repo can create PRs and have read/write access for the PR feature to work.
 
 ## Example workflow
 
