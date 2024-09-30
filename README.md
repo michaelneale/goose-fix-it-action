@@ -7,53 +7,58 @@ A github action to run [goose-ai](https://github.com/square/goose) to take on ta
 
 ## Usage
 
-Open a github issue (or find an existing one) and label it:
+Use goose to fix a github issue:
 ![Screenshot 2024-09-23 at 6 27 57 PM](https://github.com/user-attachments/assets/b41d39d3-c6da-4f64-8673-96af75348036)
 
-goose will then attempt to fix and if things go well, you will get a PR later with the fix: 
+goose attempts to fix and if things go well, it will open a PR with the fix for the issue (if it can't, no PR will result, so it has to be confident it has fixed the issue or built the feaure):
 ![Screenshot 2024-09-23 at 6 28 08 PM](https://github.com/user-attachments/assets/e7204eed-e379-4507-8cf4-77362a1ad243)
 
-This works by having configuration like this in a workflow in your project:
+goose runs as an action in your github workflow, so you can add it to your existing CI workflow files and use the same build environment (so it can check its work as it goes by testing your code and its changes - it isn't just editing or generating code).
+
+## Configuration
+
+In your github workflow, you add the goose action: 
 
 ```yaml
-
       - name: Run Goose Action
-        uses: michaelneale/goose-fix-it-action@v10
+        uses: michaelneale/goose-fix-it-action@main
         with:
-          task_request: "make me a time machine in C++"
-          validation: "run make test to check it passes"
-          create_pr: true
+          task_request: |
+            ${{ github.event.issue.title }}
+            
+            ${{ github.event.issue.body }}
+            
+            [Link to issue](${{ github.event.issue.html_url }})
+          validation: "test instructions here"
+          create_pr: 'true'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-
 ```
 
-It will do its best to complete the task, as part of your workflow (with the tools it has). If it succeeds in this case a PR will be opened based on the changes it made. If not, no PR results (and that job fails). Ensure that github actions in your repo can create PRs and have read/write access for the PR feature to work.
 
-## Using in your github workflow
+The `validation` is what goose will use to check its changes - it can be any directions on how to verify/test (eg what commands to run etc, in natural language, it will work it out). The `task_request` is instruction on what to do.
 
-To use this in your workflow, it is usually best to trigger off a labelled issue (but doesn't have to).
-In this repo there is [an example workflow](.github/workflows/goose-example-workflow.yml) you can copy, which is triggered when you open an issue and label it as "goose" (if it can solve it, a PR will result linked to that issue).
-
-The issue serves as input direction for goose. Note the `validation` parameter in the goose action, that is important so it knows how to check its work as it goes (and if it thinks it has ultimately succeeded).
+In this case it is using the github issue that triggered the workflow to direct goose. You can use this workflow here as a basis if you want it to work that way: 
+[Github Issue Fixer Workflow](.github/workflows/goose-example-workflow.yml).
 
 To ensure this works: 
 * create a goose label in your github project
-* ensure github actions can open PRs and have read/write access
+* ensure github actions can open PRs and have read/write access (see image below)
 * setup a github action secret for OPENAI_API_KEY or ANTHROPIC_API_KEY as appropriate (anything supported by goose)
 
-Github permissions for your action
+Github permissions for the action are required to be set in your repo:  
 ![image](https://github.com/user-attachments/assets/a9d0e307-2d93-4aa5-bb93-a933fb1a3231)
 
-There are many other ways to use it - it could be part of your CI for example.
 
 ## Advanced usage and customising. 
 
+There are many other ways to use the goose action in your workflows, it doesn't have to be triggered from a github issue (could be any issue tracker, or any event, or even on demand - via an input for example). The key thing is the workflow is setup to build your app from source (you can use your existing ci workflow in github actions).
+
+If you want to customise how it opens a PR, you can set `create_pr: false`, and then use https://github.com/peter-evans/create-pull-request or similar in your own workflow to open PRs or take other actions however you like.
+
 Note due to github limitations, PRs opened by the default GITHUB_TOKEN won't trigger workflows (but you can use a personal access token if you do want it to do that, or have it trigger downstream workflows). 
 
-If you want to customise how it opens a PR, you can set `create_pr: false`, and then use https://github.com/peter-evans/create-pull-request or similar in your own workflow. This will let you set the token to trigger workflows and more.
-
-Check out https://github.com/square/goose for more ways to configure (it can also work with Anthropic etc)
+Check out https://github.com/block-open-source/goose for more on goose.
 
 
 > [!WARNING]  
