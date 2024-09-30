@@ -55,6 +55,7 @@ runs:
           "  - you are running in a CI-style environment and aim to try to complete the task assigned; the result will be changes to the code that are verified." \
           "  - keep iterating as best you can to completion until the task is satisfied, and tests are run." \
           "  - you will not be able to ask the user to take any steps, you have to do this on your own. You can do research (curl websites as needed)." \
+          "  - Please not that you may be working on existing code or creating new (mostly often the former) depending on the task." \
           "  - Read ./task.txt for instructions on what issue(s) to do or fix, and then read ./validation.txt for how to know if the change or fix is working." \
           "  - if successful, write to a file ./success; if a failure, to ./failure" \
           > plan.yaml
