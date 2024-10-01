@@ -12,14 +12,10 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v2
 
-
-      - name: Set up Ruby or whatever you need
+      - name: Set up Ruby or whatever you need here
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.2' # You can specify the Ruby version you need
-
-      - name: Verify Ruby installation
-        run: ruby -v
+          ruby-version: '3.2'
 
       - name: Run Goose Action
         uses: michaelneale/goose-fix-it-action@main
