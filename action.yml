@@ -1,5 +1,7 @@
 name: "goose ai developer agent"
 description: "Uses goose AI to help you fix issues and implement your code from just a description"
+icon: activity
+color: blue
 inputs:
   task_request:
     description: 'Task request for Goose AI to complete'
