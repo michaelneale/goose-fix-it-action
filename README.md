@@ -1,5 +1,9 @@
 # goose fix it
 
+> [!WARNING]
+> An alpha/very early version of goose for github actions!
+
+
 A github action to run [goose-ai](https://github.com/square/goose) to take on tasks in the background for you using AI.
 
 > [!NOTE]
