@@ -71,7 +71,7 @@ runs:
         # Start the Goose session in the background
         cd "$GITHUB_WORKSPACE"
 
-        goose session run plan.yaml
+        goose run plan.yaml
 
     - name: Generate branch, commit, push, and create pull request
       if: ${{ inputs.create_pr == 'true' }}
