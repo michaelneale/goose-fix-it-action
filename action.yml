@@ -52,7 +52,6 @@ runs:
           "  - Try a at least 3 approaches if uiu firys fail, not not just stop. " \
           "  - use '&' if you need to run processes in the background as part of testing." \
           "  - Read ./task.txt for instructions on what issue(s) to do or fix, and then read ./validation.txt for how to know if the change or fix is working." \
-          "  - if successful, write to a file ./success; if a failure, to ./failure" \
           > plan.yaml
 
     - name: Create task.txt and validation.txt
@@ -72,32 +71,7 @@ runs:
         # Start the Goose session in the background
         cd "$GITHUB_WORKSPACE"
 
-        goose session start --plan plan.yaml &
-        GOOSE_PID=$!
-
-        # Poll for success or failure file
-        while true; do
-          if [ -f ./success ]; then
-            echo "Goose session succeeded"
-            rm -f task.txt validation.txt success failure plan.yaml
-            # Ensure to kill Goose process
-            kill -9 $GOOSE_PID || true
-            exit 0
-          elif [ -f ./failure ]; then
-            echo "Goose session failed"
-            # Ensure to kill Goose process
-            kill -9 $GOOSE_PID || true
-            exit 1
-          fi
-          if ! ps -p $GOOSE_PID > /dev/null 2>&1; then
-            echo "Goose process is no longer running"
-            exit 1
-          fi
-          sleep 10  # Adjust the sleep interval as needed
-        done
-
-        # Ensure to kill Goose process at the end
-        kill -9 $GOOSE_PID || true
+        goose run plan.yaml
 
     - name: Generate branch, commit, push, and create pull request
       if: ${{ inputs.create_pr == 'true' }}
