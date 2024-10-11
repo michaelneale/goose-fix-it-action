@@ -72,6 +72,7 @@ runs:
         cd "$GITHUB_WORKSPACE"
 
         goose run plan.yaml
+        rm -f task.txt validation.txt plan.yaml
 
     - name: Generate branch, commit, push, and create pull request
       if: ${{ inputs.create_pr == 'true' }}
