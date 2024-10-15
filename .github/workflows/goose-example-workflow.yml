@@ -1,33 +1,34 @@
-name: Goose example workflow
+name: Goose Do It
 
 on:
   issues:
     types:
       - labeled
+  issue_comment:
+    types:
+      - created      
+
 jobs:
   ask-goose:
-    if: github.event.label.name == 'goose'
+    if: github.event.label.name == 'goose' or ${{ github.event.issue.pull_request && contains(github.event.comment.body, '@goose-ai') }}
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
-
-      - name: Set up Ruby or whatever you need here
-        uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.2'
+          fetch-depth: 0
+
+      ## Install whatever you need here as per your CI setup
 
       - name: Run Goose Action
-        uses: michaelneale/goose-fix-it-action@main
+        uses: ./.github
         with:
           task_request: |
             ${{ github.event.issue.title }}
-            
             ${{ github.event.issue.body }}
-            
             [Link to issue](${{ github.event.issue.html_url }})
-          validation: "please run test.py"
-          create_pr: 'true'
+          validation: "check the vite web app installs"          
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-
+          GH_TOKEN: ${{ github.token }} # can change this to secrets.PAT if you want to trigger workflows
