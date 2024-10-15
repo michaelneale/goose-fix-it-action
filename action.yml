@@ -1,5 +1,5 @@
 name: "goose ai developer agent"
-description: "Uses goose AI to help you fix issues and implement your code from just a description"
+description: "Uses Goose AI to help you fix issues and implement your code from just a description"
 icon: activity
 color: blue
 inputs:
@@ -11,7 +11,12 @@ inputs:
     required: true
   create_pr:
     description: 'Optionally create a Pull Request (true/false)'
-    required: true
+    required: false
+    default: 'true'
+  update_pr:
+    description: 'Update Pull Request based on feedback if you mention @goose-ai'
+    required: false
+    default: 'true'
 
 runs:
   using: "composite"
@@ -35,8 +40,33 @@ runs:
       run: pipx install goose-ai
       shell: bash
 
+    - name: Determine and Checkout Correct Branch
+      shell: bash
+      run: |
+        # Determine if the event is a PR comment
+        if [[ "${{ github.event_name }}" == "issue_comment" && "$(jq -r '.issue.pull_request' "$GITHUB_EVENT_PATH")" != "null" ]]; then
+          echo "Triggered by a comment on a PR."
 
-    - name: Create plan.yaml
+          # Extract the PR number from the event payload
+          PR_NUMBER=$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")
+          
+          # Use the GitHub API to get the PR details
+          PR_DATA=$(curl -s -H "Authorization: token $GH_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER")
+          
+          # Extract the head ref (branch name)
+          PR_HEAD_REF=$(echo "$PR_DATA" | jq -r '.head.ref')
+          echo "PR head ref is $PR_HEAD_REF"
+
+          # Fetch and checkout the PR branch
+          git fetch origin "$PR_HEAD_REF"
+          git checkout "$PR_HEAD_REF"
+        else
+          echo "Not a PR comment event. Using the default branch."
+        fi
+
+    - name: Create plan for labelled issue
+      if: ${{ github.event_name == 'issues' && github.event.action == 'labeled' }}
       shell: bash
       run: |
         printf "%s\n" \
@@ -49,9 +79,26 @@ runs:
           "  - keep iterating to completion until the task is satisfied, and tests are run." \
           "  - you will not be able to ask the user to take any steps, you have to do this on your own. You can do research (curl websites as needed)." \
           "  - decide if you are working on net new code or existing code." \
-          "  - Try a at least 3 approaches if uiu firys fail, not not just stop. " \
+          "  - Try at least 3 approaches if you fail, do not just stop." \
           "  - use '&' if you need to run processes in the background as part of testing." \
           "  - Read ./task.txt for instructions on what issue(s) to do or fix, and then read ./validation.txt for how to know if the change or fix is working." \
+          > plan.yaml
+
+    - name: Create plan for PR feedback
+      if: ${{ github.event_name == 'issue_comment' && github.event.issue.pull_request != null }}
+      shell: bash
+      run: |
+        printf "%s\n" \
+          "kickoff_message: |" \
+          "  This will follow tasks as given for the project and then try to complete them end-to-end without input." \
+          "  Feedback from past comments will be considered." \
+          "" \
+          "tasks:" \
+          "  - You are working on a work in progress github pull request in a github workflow environment." \
+          "  - get all feedback from previous pull request comments and include that with task." \
+          "  - gh cli is available, as is GITHUB_CONTEXT environment variable for context." \
+          "  - iterate to satisfy the task, validating it, and trying a few approaches if first failing, ensuring to take note of comments." \
+          "  - Read ./task.txt for instructions on what to address, and ./validation.txt for how to know if the change is working. Important to address recent comment history for the current pull request." \
           > plan.yaml
 
     - name: Create task.txt and validation.txt
@@ -62,23 +109,23 @@ runs:
 
     - name: Run Goose Session
       shell: bash
+      env: 
+        GITHUB_CONTEXT: ${{ toJson(github) }}
       run: |
         set -e
 
         echo "Task Request: ${{ inputs.task_request }}" > task.txt
         echo "Validation: ${{ inputs.validation }}" > validation.txt
 
-        # Start the Goose session in the background
+        # Start the Goose session
         cd "$GITHUB_WORKSPACE"
 
         goose run plan.yaml
         rm -f task.txt validation.txt plan.yaml
 
-    - name: Generate branch, commit, push, and create pull request
-      if: ${{ inputs.create_pr == 'true' }}
+    - name: Generate branch, commit, push, and create pull request for labelled issue
+      if: ${{ inputs.create_pr == 'true' && github.event_name == 'issues' && github.event.action == 'labeled' }}
       shell: bash
-      env:
-          GH_TOKEN: ${{ github.token }}      
       run: |
         # Generate a slug from the issue title, replacing spaces with dashes and ensuring lowercase
         SLUG=$(echo "${{ github.event.issue.title }}" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd '[:alnum:]-')
@@ -95,10 +142,21 @@ runs:
 
         # Add and commit changes
         git add .
-        git commit -m "changes from goose"
+        git commit -m "Changes from Goose AI"
 
         # Push the branch to the remote repository
         git push origin $BRANCH_NAME
 
         # Create a pull request using the GitHub CLI
-        gh pr create --head $BRANCH_NAME --title "${{ github.event.issue.title }}" --body "Resolves issue: ${{ github.event.issue.html_url }} ${{ github.event.issue.body }} "        
+        gh pr create --head $BRANCH_NAME --title "${{ github.event.issue.title }}" --body "Resolves issue: ${{ github.event.issue.html_url }} ${{ github.event.issue.body }} "
+
+    - name: Commit and Push Changes for PR Comment
+      if: ${{ inputs.update_pr == 'true' && github.event_name == 'issue_comment' && github.event.issue.pull_request != null }}
+      shell: bash
+      run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Comments addressed by Goose AI"
+          # Push changes to the current branch (which is the PR branch)
+          git push origin HEAD
