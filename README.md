@@ -1,13 +1,11 @@
 # goose fix it
 
+A github action to run https://github.com/block-open-source/goose to take on tasks in the background for you using AI.
+You can label an issue with `goose` and it will open a pull request to fix it. 
+You can say `help me @goose-ci - can you clean up the mess` in a pull request comment on any pull request, and goose will try to assist and fix up your PR.
+
 > [!WARNING]
 > An alpha version of goose for github actions!
-
-
-A github action to run https://github.com/block-open-source/goose to take on tasks in the background for you using AI.
-
-> [!NOTE]
-> Some have suggested this be pronounced "goosey".
 
 ## Usage
 
@@ -16,6 +14,10 @@ Use goose to fix a github issue:
 
 goose attempts to fix and if things go well, it will open a PR with the fix for the issue (if it can't, no PR will result, so it has to be confident it has fixed the issue or built the feaure):
 ![Screenshot 2024-09-23 at 6 28 08 PM](https://github.com/user-attachments/assets/e7204eed-e379-4507-8cf4-77362a1ad243)
+
+goose will help out in the middle of a PR review: 
+
+![image](https://github.com/user-attachments/assets/d615d226-beee-43f5-b894-9a6255dac0e3)
 
 goose runs as an action in your github workflow, so you can add it to your existing CI workflow files and use the same build environment (so it can check its work as it goes by testing your code and its changes - it isn't just editing or generating code).
 
