@@ -85,7 +85,7 @@ runs:
           > plan.yaml
 
     - name: Create plan for PR feedback
-      if: ${{ github.event_name == 'issue_comment' && github.event.issue.pull_request != null }}
+      if: ${{ github.event_name == 'issue_comment' && github.event.issue.pull_request != null && !contains(github.event.comment.body, 'goose-ai rollback') }}
       shell: bash
       run: |
         printf "%s\n" \
@@ -102,12 +102,14 @@ runs:
           > plan.yaml
 
     - name: Create task.txt and validation.txt
+      if: ${{ !contains(github.event.comment.body, 'goose-ai rollback') }}
       shell: bash
       run: |
         echo "${{ inputs.task_request }}" > task.txt
         echo "${{ inputs.validation }}" > validation.txt
 
     - name: Run Goose Session
+      if: ${{ !contains(github.event.comment.body, 'goose-ai rollback') }}
       shell: bash
       env: 
         GITHUB_CONTEXT: ${{ toJson(github) }}
@@ -148,15 +150,48 @@ runs:
         git push origin $BRANCH_NAME
 
         # Create a pull request using the GitHub CLI
-        gh pr create --head $BRANCH_NAME --title "${{ github.event.issue.title }}" --body "Resolves issue: ${{ github.event.issue.html_url }} ${{ github.event.issue.body }} "
+        gh pr create --head $BRANCH_NAME --title "${{ github.event.issue.title }}" --body "Resolves issue: ${{ github.event.issue.html_url }} ${{ github.event.issue.body }}
+
+        Note: You can mention @goose-ai in a comment to request changes or improvements to this pull request."
 
     - name: Commit and Push Changes for PR Comment
-      if: ${{ inputs.update_pr == 'true' && github.event_name == 'issue_comment' && github.event.issue.pull_request != null }}
+      if: ${{ inputs.update_pr == 'true' && github.event_name == 'issue_comment' && github.event.issue.pull_request != null && !contains(github.event.comment.body, 'goose-ai rollback') }}
       shell: bash
       run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add .
-          git commit -m "Comments addressed by Goose AI"
+          git commit -m "Comments addressed by goose AI"
           # Push changes to the current branch (which is the PR branch)
           git push origin HEAD
+          
+          # Add a comment to the PR
+          PR_NUMBER=$(jq -r .issue.number "$GITHUB_EVENT_PATH")
+          gh pr comment $PR_NUMBER --body "_changes made by goose AI._ :bulb: **TIP:** Use \`@ goose-ai rollback\` (no space after @) to undo these changes."
+
+
+    - name: Rollback Changes
+      if: ${{ inputs.update_pr == 'true' && github.event_name == 'issue_comment' && github.event.issue.pull_request != null && contains(github.event.comment.body, 'goose-ai rollback') }}
+      shell: bash
+      run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          
+          # Find the last commit with the message "Comments addressed by goose AI"
+          COMMIT_TO_REVERT=$(git log --grep="Comments addressed by goose AI" -n 1 --pretty=format:"%H")
+          
+          if [ -n "$COMMIT_TO_REVERT" ]; then
+            # Revert the commit
+            git revert --no-edit $COMMIT_TO_REVERT
+            
+            # Push the revert commit
+            git push origin HEAD
+            
+            # Add a comment to the PR
+            PR_NUMBER=$(jq -r .issue.number "$GITHUB_EVENT_PATH")
+            gh pr comment $PR_NUMBER --body "Successfully reverted the last goose AI changes."
+            
+            echo "_Successfully reverted the last goose AI changes._"
+          else
+            echo "No commit found with the message 'Comments addressed by goose AI'. Nothing to revert."
+          fi
