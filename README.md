@@ -52,7 +52,7 @@ jobs:
       ## Install whatever you need here as per your CI setup for your project
 
       - name: Run Goose Action
-        uses: ./.github
+        uses: michaelneale/goose-fix-it-action@main
         with:
           task_request: |
             ${{ github.event.issue.title }}
