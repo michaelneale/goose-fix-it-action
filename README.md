@@ -65,7 +65,7 @@ jobs:
 ```
 
 This example will both open pull requests IF it can come up with a validated change. 
-It will also trigger if you mention `@goose-ai` in a pull request (could be one someone else opened, or goose opened), in that case, it will try to address the feedback and push the change back to the pull request.
+It will also trigger if you mention `@goose-ai` in a pull request (could be one someone else opened, or goose opened), in that case, it will try to address the feedback and push the change back to the pull request. If you say `@goose-ai rollback` it will undo the last change it made.
 
 The `validation` is what goose will use to check its changes - it can be any directions on how to verify/test (eg what commands to run etc, in natural language, it will work it out). The `task_request` is instruction on what to do.
 
